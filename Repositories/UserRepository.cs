@@ -1,4 +1,4 @@
-﻿using Dapper.Contrib.Extensions;
+﻿using Dapper;
 using JanesBlog.Models;
 using MySql.Data.MySqlClient;
 using System;
@@ -9,17 +9,42 @@ using System.Threading.Tasks;
 
 namespace JanesBlog.Repositories
 {
-    public class UserRepository(MySqlConnection connection)
+    public class UserRepository : Repository<User>
     {
-        private readonly MySqlConnection _connection = connection;
+        private readonly MySqlConnection _connection;
 
-        public IEnumerable<User> Get()
-            => _connection.GetAll<User>();
+        public UserRepository(MySqlConnection connection) : base(connection)
+            => _connection = connection;
 
-        public User Get(int id)
-            => _connection.Get<User>(id);
+        public List<User> ReadWithRole()
+        {
+            var query = @"
+            SELECT
+                [User].*,
+                [Role].*
+            FROM
+                [User]
+                LEFT JOIN [UserRole] ON [UserRole].[UserId] = [User].[Id]
+                LEFT JOIN [Role] ON [UserRole].[RoleId] = [Role].[Id]";
 
-        public void Create(User user)
-            => _connection.Insert<User>(user);
+            var users = new List<User>();
+            var items = _connection.Query<User, Role, User>(
+                query,
+                (user, role) =>
+                {
+                    var usr = users.FirstOrDefault(x => x.Id == user.Id);
+                    if (usr == null)
+                    {
+                        usr = user;
+                        usr.Roles.Add(role);
+                        users.Add(usr);
+                    }
+                    else
+                        usr.Roles.Add(role);
+
+                    return user;
+                }, splitOn: "Id");
+            return users;
+        }
     }
 }

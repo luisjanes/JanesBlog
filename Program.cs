@@ -12,6 +12,7 @@ public class Program
     {
         var connection = new MySqlConnection(CONNECTION_STRING);
         ReadUsers(connection);
+        //ReadRoles(connection);
         //ReadUser(connection);
         //CreateUser(connection);
         //UpdateUser(connection);
@@ -19,11 +20,25 @@ public class Program
     }
     public static void ReadUsers(MySqlConnection connection)
     {
-        var userRepository = new UserRepository(connection);
-        var users = userRepository.Get();
+        var userRepository = new Repository<User>(connection);
+        var users = userRepository.GetAll();
         foreach (var user in users)
+        {
             Console.WriteLine(user.Name);
+            foreach (var role in user.Roles)
+            {
+                Console.WriteLine(role.Name);
+            }
+        }
 
+
+    }
+    public static void ReadRoles(MySqlConnection connection)
+    {
+        var roleRepository = new Repository<Role>(connection);
+        var roles = roleRepository.GetAll();
+        foreach (var role in roles)
+            Console.WriteLine(role.Name);
     }
     public static void ReadUser(MySqlConnection connection)
     {
@@ -33,17 +48,18 @@ public class Program
     }
     public static void CreateUser(MySqlConnection connection)
     {
-        var user = new User() 
-        { 
+        var user = new User()
+        {
             Id = 0,
-            Name = "Carolina",
-            Email = "carolina@gmail.com",
+            Name = "Mariane",
+            Email = "mariane@gmail.com",
             PasswordHash = "HASH",
-            Bio = "A Grande Carolina",
+            Bio = "A Grande Mariane",
             Image = "https://",
-            Slug = "carolina"
+            Slug = "mariane"
         };
-        connection.Insert<User>(user);
+        var repository = new Repository<User>(connection);
+        repository.Create(user);
     }
     public static void UpdateUser(MySqlConnection connection)
     {
@@ -57,11 +73,12 @@ public class Program
             Image = "https://",
             Slug = "carolina2"
         };
-        connection.Update<User>(user);
+        var repository = new Repository<User>(connection); 
+        repository.Update(user);
     }
-    public static void DeleteUser(MySqlConnection connection)
+    public static void DeleteUser(MySqlConnection connection, int id)
     {
-        var user = connection.Get<User>(6);
-        connection.Delete<User>(user);
+        var repository = new Repository<User>(connection);
+        repository.Delete(id);
     }
 }
