@@ -30,8 +30,6 @@ public class Program
                 Console.WriteLine(role.Name);
             }
         }
-
-
     }
     public static void ReadRoles(MySqlConnection connection)
     {
@@ -40,11 +38,17 @@ public class Program
         foreach (var role in roles)
             Console.WriteLine(role.Name);
     }
-    public static void ReadUser(MySqlConnection connection)
+    public static void ReadUser(MySqlConnection connection, int id)
     {
-        var user = connection.Get<User>(2);
+        var user = connection.Get<User>(id);
         Console.WriteLine(user.Name);
         Console.WriteLine(user.Email);
+    }
+    public static void ReadRole(MySqlConnection connection, int id)
+    {
+        var role = connection.Get<Role>(id);
+        Console.WriteLine(role.Name);
+        Console.WriteLine(role.Email);
     }
     public static void CreateUser(MySqlConnection connection)
     {
@@ -60,6 +64,17 @@ public class Program
         };
         var repository = new Repository<User>(connection);
         repository.Create(user);
+    }
+    public static void CreateRole(MySqlConnection connection)
+    {
+        var role = new Role()
+        {
+            Id = 0,
+            Name = "ADM",
+            Slug = "adm"
+        };
+        var repository = new Repository<Role>(connection);
+        repository.Create(role);
     }
     public static void UpdateUser(MySqlConnection connection)
     {
