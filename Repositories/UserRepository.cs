@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using JanesBlog.Models;
+using JanesBlog.Views;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -11,24 +12,19 @@ namespace JanesBlog.Repositories
 {
     public class UserRepository : Repository<User>
     {
-        private readonly MySqlConnection _connection;
-
-        public UserRepository(MySqlConnection connection) : base(connection)
-            => _connection = connection;
-
         public List<User> ReadWithRole()
         {
             var query = @"
             SELECT
-                [User].*,
-                [Role].*
+                User.*,
+                Role.*
             FROM
-                [User]
-                LEFT JOIN [UserRole] ON [UserRole].[UserId] = [User].[Id]
-                LEFT JOIN [Role] ON [UserRole].[RoleId] = [Role].[Id]";
+                User
+                LEFT JOIN UserRole ON UserRole.UserId = User.Id
+                LEFT JOIN Role ON UserRole.RoleId = Role.Id";
 
             var users = new List<User>();
-            var items = _connection.Query<User, Role, User>(
+            var items = DataBase.Connection.Query<User, Role, User>(
                 query,
                 (user, role) =>
                 {
@@ -36,7 +32,8 @@ namespace JanesBlog.Repositories
                     if (usr == null)
                     {
                         usr = user;
-                        usr.Roles.Add(role);
+                        if (usr != null)
+                            usr.Roles.Add(role);
                         users.Add(usr);
                     }
                     else
